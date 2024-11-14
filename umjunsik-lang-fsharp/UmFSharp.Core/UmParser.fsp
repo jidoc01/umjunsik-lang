@@ -1,0 +1,64 @@
+﻿%{
+open AST
+%}
+
+%token START END NEWLINE
+%token QO EX
+%token <Annot> DONGTAN JUN FIGHTING SIK KIK
+%token <Annot * Int> VARID
+%token ADD SUB MUL
+
+%token EOF
+
+%start prog
+%type <Prog> prog
+
+%%
+
+prog:
+      START END EOF { { PerLineStmtInfos = Map.empty; Length = 0 } }
+    | START stmtInfos END EOF
+        {
+            {
+                PerLineStmtInfos = $2
+                Length = $2 |> Seq.last |> fun (KeyValue (lineNum, _))-> lineNum
+            }
+        }
+
+stmtInfos:
+      stmtInfosAux
+        {
+            $1
+            |> List.map (fun ((annot, stmt) as stmtInfo) -> (annot.LineNumber, stmtInfo))
+            |> Map.ofList
+        }
+
+stmtInfosAux:
+      { [] }
+    | stmtInfo stmtInfosAux { $1 :: $2 }
+
+stmtInfo:
+      DONGTAN expr QO stmtInfo { $1, IfNotThen($2, snd $4) }
+    | JUN expr { $1, Goto($2) }
+    | FIGHTING expr { $1, Ret($2) }
+    | VARID expr { (fst $1), Def(snd $1, $2) }
+    | VARID SIK QO { (fst $1), Def(snd $1, ExternalCall(ReadInt, [])) }
+    | write { $1 }
+
+write:
+      SIK expr EX { $1, SideEffect(ExternalCall(WriteInt, [ $2 ])) }
+    | SIK KIK { $1, SideEffect(ExternalCall(WriteChar, [])) }
+    | SIK expr KIK { $1, SideEffect(ExternalCall(WriteChar, [ $2 ])) }
+
+expr:
+      VARID { Load(snd $1) }
+    | const { Const($1) }
+    | expr ADD { BinOp(Add, $1, Const(1)) }
+    | expr SUB { BinOp(Sub, $1, Const(1)) }
+    | expr MUL expr { BinOp(Mul, $1, $3) }
+
+const:
+      ADD const { $2 + 1 }
+    | SUB const { $2 - 1 }
+    | ADD { 1 }
+    | SUB { -1 }

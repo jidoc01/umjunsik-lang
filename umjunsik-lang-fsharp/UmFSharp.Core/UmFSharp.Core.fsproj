@@ -1,0 +1,30 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="Stream.fs" />
+    <Compile Include="Types.fs" />
+    <Compile Include="AST.fs" />
+    <Compile Include="Context.fs" />
+    <Compile Include="Interpreter.fs" />
+    <Compile Include="Optimizer.fs" />
+    <FsYacc Include="UmParser.fsp">
+      <OtherFlags>--module UmFSharp.Core.UmParser -o UmParser.fs</OtherFlags>
+    </FsYacc>
+    <FsLex Include="UmLexer.fsl">
+      <OtherFlags>--module UmFSharp.Core.UmLexer --unicode -o UmLexer.fs</OtherFlags>
+    </FsLex>
+    <Compile Include="UmParser.fs" />
+    <Compile Include="UmLexer.fs" />
+    <Compile Include="UmHelper.fs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="FsLexYacc" Version="11.3.0" />
+  </ItemGroup>
+
+</Project>

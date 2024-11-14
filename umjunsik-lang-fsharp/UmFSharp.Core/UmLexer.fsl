@@ -1,0 +1,87 @@
+﻿{
+open System
+open AST
+open UmParser
+open FSharp.Text.Lexing
+
+let mutable private lineNum = 1
+
+let private getLeadingUhCount (s: string) =
+    let mutable flag = true
+    let mutable i = 0
+    while flag && i < s.Length do
+        if s[i] = '어' then
+            i <- i + 1
+        else
+            flag <- false
+    i
+
+let private lexeme = LexBuffer<_>.LexemeString
+}
+
+let dot         = '.'
+let comma       = ','
+let uh          = '어'
+let um          = '엄'
+let space       = ' '
+
+let add         = dot
+let sub         = comma
+let mul         = space
+let varid       = uh+
+let assign      = uh*um+
+
+let newline     = '\n' | '\r'
+
+rule token = parse
+| newline
+    {
+        let s = lexeme lexbuf
+        if s[0] <> '\n' then ()
+        else
+            lexbuf.StartPos <- lexbuf.StartPos.NextLine
+            lineNum <- lineNum + 1
+        token lexbuf
+    }
+| "어떻게"
+    { START }
+| "이 사람이름이냐ㅋㅋ"
+    { END }
+| "동탄"
+    { DONGTAN { LineNumber = lineNum } }
+| "준"
+    { JUN { LineNumber = lineNum } }
+| "식"
+    { SIK { LineNumber = lineNum } }
+| "화이팅!"
+    { FIGHTING { LineNumber = lineNum } }
+| "ㅋ"
+    { KIK { LineNumber = lineNum } }
+| "?"
+    { QO }
+| "!"
+    { EX }
+| add
+    { ADD }
+| sub
+    { SUB }
+| mul
+    { MUL }
+| varid
+    {
+        let annot = { LineNumber = lineNum }
+        let n = lexeme lexbuf |> fun s -> s.Length
+        VARID (annot, n)
+    }
+| assign
+    {
+        let annot = { LineNumber = lineNum }
+        let n = lexeme lexbuf |> getLeadingUhCount |> (+) 1
+        VARID (annot, n)
+    }
+| eof
+    { EOF }
+| _
+    {
+        raise (Exception ("Unexpected character: " + lexeme lexbuf))
+    }

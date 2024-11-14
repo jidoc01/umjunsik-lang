@@ -1,0 +1,25 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Remove="Core\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="Launcher.fs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Argu" Version="6.2.4" />
+    <PackageReference Include="FsLexYacc" Version="11.3.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\UmFSharp.Core\UmFSharp.Core.fsproj" />
+  </ItemGroup>
+
+</Project>
